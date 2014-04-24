@@ -1,46 +1,139 @@
 package cpup.cbot.test
 
 import cpup.cbot.{CBot, BotConfig}
-import cpup.cbot.plugin.{CommandPlugin, Plugin}
+import cpup.cbot.plugin._
 import com.google.common.eventbus.Subscribe
-import cpup.cbot.events.channel.{ChannelEvent, ChannelMessageEvent}
-import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, CommandEvent}
-import scala.collection.mutable
-import scala.collection.immutable.HashMap
+import cpup.cbot.events.channel.ChannelEvent
+import cpup.cbot.plugin.CommandPlugin.{TCommandCheckEvent, TCommandEvent}
+import cpup.cbot.channels.Channel
+import cpup.cbot.events.channel.ChannelMessageEvent
 
 object Start {
 	def main(args: Array[String]) {
 		val config = new BotConfig.Builder("localhost", "cbot")
-		config.autoReconnect = true
+			.setAutoReconnect(true)
 
 		val bot = new CBot(config)
 
-		val pluginsManagement = new PluginManagementPlugin(Map(
-			"command" -> new CommandPlugin("!"),
+		val pluginManagement = new PluginManagementPlugin(Map(
 			"echo" -> new EchoPlugin,
 			"say-hello" -> new SayHelloPlugin,
-			"say" -> new SayPlugin
+			"say" -> new SayPlugin,
+			"channel-management" -> new ChannelManagementPlugin,
+			"op" -> new OPPlugin,
+			"help" -> new HelpPlugin
 		))
-		pluginsManagement.registerPlugin("plugins-management", pluginsManagement)
+
+		bot
+			.enablePlugin(new CommandPlugin("!"))
+			.enablePlugin(pluginManagement)
 
 		bot.channels.join("code/cbot")
 			.setRejoin(true)
-			.enablePlugin(pluginsManagement.plugins("command"))
-			.enablePlugin(pluginsManagement.plugins("plugins-management"))
+			.enablePlugin(pluginManagement.plugins("op"))
+			.enablePlugin(pluginManagement.plugins("help"))
+			.enablePlugin(pluginManagement.plugins("channel-management"))
+
 		bot.connect
+	}
+}
+
+class OPPlugin extends Plugin {
+	@Subscribe
+	def op(e: TCommandCheckEvent) {
+		e.command(
+			name = "op",
+			usage = "[channel] [user]",
+			handle = (e: TCommandEvent, printUsage: () => Unit) => {
+				var user = e.user.nick
+				var channel: String = null
+				var requiresChannel = false
+
+				e match {
+					case event: ChannelEvent =>
+						channel = event.channel.name
+						requiresChannel = true
+					case _ =>
+				}
+
+				if(channel == null || e.args.length >= 2 || (e.args.length >= 1 && e.args(0).startsWith("#"))){
+					if(e.args.length >= 1) {
+						channel = Channel.unifyName(e.args(0))
+					} else {
+						printUsage()
+					}
+
+					if(e.args.length >= 2) {
+						user = e.args(1)
+					}
+				} else {
+					if(e.args.length >= 1) {
+						user = e.args(0)
+					}
+				}
+
+				e.bot.users.fromNick("ChanServ").send.msg(s"op #$channel $user")
+				e.genericReply(s"Opping $user in #$channel")
+				()
+			}
+		)
+	}
+
+	@Subscribe
+	def deop(e: TCommandCheckEvent) {
+		e.command(
+			name = "deop",
+			usage = "[channel] [user]",
+			handle = (e: TCommandEvent, printUsage: () => Unit) => {
+				var user = e.user.nick
+				var channel: String = null
+				var requiresChannel = false
+
+				e match {
+					case event: ChannelEvent =>
+						channel = event.channel.name
+						requiresChannel = true
+					case _ =>
+				}
+
+				if(channel == null || e.args.length >= 2 || (e.args.length >= 1 && e.args(0).startsWith("#"))){
+					if(e.args.length >= 1) {
+						channel = Channel.unifyName(e.args(0))
+					} else {
+						printUsage()
+					}
+
+					if(e.args.length >= 2) {
+						user = e.args(1)
+					}
+				} else {
+					if(e.args.length >= 1) {
+						user = e.args(0)
+					}
+				}
+
+				e.bot.users.fromNick("ChanServ").send.msg(s"deop #$channel $user")
+				e.genericReply(s"Deopping $user in #$channel")
+				()
+			}
+		)
 	}
 }
 
 class SayHelloPlugin extends Plugin {
 	@Subscribe
-	def sayHi(e: TCommandEvent) {
-		if(e.cmd == "say-hi") {
-			if(e.args.length < 1) {
-				e.reply(s"Usage: ${e.cmd} <name>")
-			} else {
-				e.genericReply(s"HI ${e.args(0)}!")
+	def sayHi(e: TCommandCheckEvent) {
+		e.command(
+			name = "say-hi",
+			usage = "[name]",
+			handle = (e: TCommandEvent, printUsage: () => Unit) => {
+				if(e.args.length < 1) {
+					e.genericReply(s"HI ${e.user.nick}!")
+				} else {
+					e.genericReply(s"HI ${e.args(0)}!")
+				}
 			}
-		}
+		)
 	}
 }
 
@@ -55,76 +148,19 @@ class EchoPlugin extends Plugin {
 
 class SayPlugin extends Plugin {
 	@Subscribe
-	def say(e: TCommandEvent) {
-		if(e.cmd == "say") {
-			if(e.args.length < 1) {
-				e.reply(s"Usage: ${e.cmd} <msg>...")
-			} else {
-				e.genericReply(e.args.mkString(" "))
-			}
-		}
-	}
-}
-
-class PluginManagementPlugin(protected var _plugins: Map[String, Plugin]) extends Plugin {
-	protected var reversePlugins = plugins.map(_.swap)
-
-	def plugins = _plugins
-
-	def registerPlugin(name: String, plugin: Plugin) = {
-		_plugins += name -> plugin
-		reversePlugins += plugin -> name
-		this
-	}
-
-	def convertToName(pl: Plugin) = reversePlugins.getOrElse(pl, pl.toString)
-
-	@Subscribe
-	def listPlugins(e: TCommandEvent) {
-		if(e.cmd == "plugins") {
-			val enabledPlugins = e.pluginManager.plugins.map(convertToName)
-			e.reply(s"Enabled Plugins: ${enabledPlugins.mkString(", ")}")
-			e.reply(s"Avaliable Plugins: ${(plugins.keySet -- enabledPlugins).mkString(", ")}")
-		}
-	}
-
-	@Subscribe
-	def enablePlugin(e: TCommandEvent) {
-		if(e.cmd == "enable-plugin") {
-			if(e.args.length < 1) {
-				e.reply(s"Usage: ${e.cmd} <plugin>")
-			} else {
-				val filter = e.args(0).toLowerCase
-				val plugins = _plugins.keySet.filter(_.toLowerCase.contains(filter)).map(_plugins(_))
-				if(plugins.isEmpty) {
-					e.reply(s"No plugins matched: $filter}")
+	def say(e: TCommandCheckEvent) {
+		e.command(
+			name = "say",
+			usage = "<msg>...",
+			handle = (e: TCommandEvent, printUsage: () => Unit) => {
+				if(e.args.length < 1) {
+					printUsage()
 				} else {
-					e.reply(s"Enabling plugins: ${plugins.map(convertToName).mkString(", ")}")
-					plugins.foreach(e.pluginManager.enablePlugin(_))
+					e.genericReply(e.args.mkString(" "))
 				}
-			}
-		}
-	}
 
-	@Subscribe
-	def disablePlugin(e: TCommandEvent) {
-		if(e.cmd == "disable-plugin") {
-			if(e.args.length < 1) {
-				e.reply(s"Usage: ${e.cmd} <plugin>")
-			} else {
-				val filter = e.args(0).toLowerCase
-				val plugins = e.pluginManager.plugins.map((pl) => {
-					(pl, convertToName(pl))
-				}).filter({
-					_._2.toLowerCase.contains(filter)
-				})
-				if(plugins.isEmpty) {
-					e.reply(s"No plugins matched: $filter}")
-				} else {
-					e.genericReply(s"Disabling plugins: ${plugins.map(_._2).mkString(", ")}")
-					plugins.foreach((t) => e.pluginManager.disablePlugin((t._1)))
-				}
+				()
 			}
-		}
+		)
 	}
 }
