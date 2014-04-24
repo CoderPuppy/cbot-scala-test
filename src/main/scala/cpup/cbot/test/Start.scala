@@ -5,6 +5,8 @@ import cpup.cbot.plugin.{CommandPlugin, Plugin}
 import com.google.common.eventbus.Subscribe
 import cpup.cbot.events.channel.{ChannelEvent, ChannelMessageEvent}
 import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, CommandEvent}
+import scala.collection.mutable
+import scala.collection.immutable.HashMap
 
 object Start {
 	def main(args: Array[String]) {
@@ -12,12 +14,18 @@ object Start {
 		config.autoReconnect = true
 
 		val bot = new CBot(config)
+
+		val pluginsManagement = new PluginManagementPlugin(Map(
+			"command" -> new CommandPlugin("!"),
+			"echo" -> new EchoPlugin,
+			"say-hello" -> new SayHelloPlugin
+		))
+		pluginsManagement.registerPlugin("plugins-management", pluginsManagement)
+
 		bot.channels.join("code/cbot")
 			.setRejoin(true)
-			.enablePlugin(new PluginManagementPlugin)
-			.enablePlugin(new SayHelloPlugin)
-			.enablePlugin(new EchoPlugin)
-			.enablePlugin(new CommandPlugin("!"))
+			.enablePlugin(pluginsManagement.plugins("command"))
+			.enablePlugin(pluginsManagement.plugins("plugins-management"))
 		bot.connect
 	}
 }
@@ -44,11 +52,42 @@ class EchoPlugin extends Plugin {
 	}
 }
 
-class PluginManagementPlugin extends Plugin {
+class PluginManagementPlugin(protected var _plugins: Map[String, Plugin]) extends Plugin {
+	protected var reversePlugins = plugins.map(_.swap)
+
+	def plugins = _plugins
+
+	def registerPlugin(name: String, plugin: Plugin) = {
+		_plugins += name -> plugin
+		reversePlugins += plugin -> name
+		this
+	}
+
+	def convertToName(pl: Plugin) = reversePlugins.getOrElse(pl, pl.toString)
+
 	@Subscribe
 	def listPlugins(e: TCommandEvent) {
-		if(e.cmd == "list-plugins") {
-			e.reply(s"Enabled Plugins: ${e.pluginManager.plugins.mkString(", ")}")
+		if(e.cmd == "plugins") {
+			val enabledPlugins = e.pluginManager.plugins.map(convertToName)
+			e.reply(s"Enabled Plugins: ${enabledPlugins.mkString(", ")}")
+			e.reply(s"Avaliable Plugins: ${(plugins.keySet -- enabledPlugins).mkString(", ")}")
+		}
+	}
+
+	@Subscribe
+	def enablePlugin(e: TCommandEvent) {
+		if(e.cmd == "enable-plugin") {
+			if(e.args.length < 1) {
+				e.reply(s"Usage: ${e.cmd} <plugin>")
+			} else {
+				plugins.get(e.args(0)) match {
+					case Some(plugin) =>
+						e.reply(s"Enabling plugins: ${convertToName(plugin)}")
+						e.pluginManager.enablePlugin(plugin)
+					case None =>
+						e.reply(s"Unknown plugin: ${e.args(0)}")
+				}
+			}
 		}
 	}
 
@@ -56,12 +95,16 @@ class PluginManagementPlugin extends Plugin {
 	def disablePlugin(e: TCommandEvent) {
 		if(e.cmd == "disable-plugin") {
 			if(e.args.length < 1) {
-				e.reply(s"Usage: ${e.cmd} <classname>")
+				e.reply(s"Usage: ${e.cmd} <plugin>")
 			} else {
 				val filter = e.args(0)
-				val plugins = e.pluginManager.plugins.filter(_.getClass.getName.contains(filter))
-				e.genericReply(s"Disabling plugins: ${plugins.mkString(", ")}")
-				plugins.foreach(e.pluginManager.disablePlugin(_))
+				val plugins = e.pluginManager.plugins.map((pl) => {
+					(pl, convertToName(pl))
+				}).filter({
+					_._2.toLowerCase.contains(filter.toLowerCase())
+				})
+				e.genericReply(s"Disabling plugins: ${plugins.map(_._2).mkString(", ")}")
+				plugins.foreach((t) => e.pluginManager.disablePlugin((t._1)))
 			}
 		}
 	}
