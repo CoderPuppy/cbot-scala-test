@@ -18,7 +18,8 @@ object Start {
 		val pluginsManagement = new PluginManagementPlugin(Map(
 			"command" -> new CommandPlugin("!"),
 			"echo" -> new EchoPlugin,
-			"say-hello" -> new SayHelloPlugin
+			"say-hello" -> new SayHelloPlugin,
+			"say" -> new SayPlugin
 		))
 		pluginsManagement.registerPlugin("plugins-management", pluginsManagement)
 
@@ -48,6 +49,19 @@ class EchoPlugin extends Plugin {
 	def onMessage(e: ChannelMessageEvent) {
 		if(e.user != e.bot.user) {
 			e.channel.send.msg(e.msg)
+		}
+	}
+}
+
+class SayPlugin extends Plugin {
+	@Subscribe
+	def say(e: TCommandEvent) {
+		if(e.cmd == "say") {
+			if(e.args.length < 1) {
+				e.reply(s"Usage: ${e.cmd} <msg>...")
+			} else {
+				e.genericReply(e.args.mkString(" "))
+			}
 		}
 	}
 }
