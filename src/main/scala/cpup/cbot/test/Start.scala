@@ -80,12 +80,13 @@ class PluginManagementPlugin(protected var _plugins: Map[String, Plugin]) extend
 			if(e.args.length < 1) {
 				e.reply(s"Usage: ${e.cmd} <plugin>")
 			} else {
-				plugins.get(e.args(0)) match {
-					case Some(plugin) =>
-						e.reply(s"Enabling plugins: ${convertToName(plugin)}")
-						e.pluginManager.enablePlugin(plugin)
-					case None =>
-						e.reply(s"Unknown plugin: ${e.args(0)}")
+				val filter = e.args(0).toLowerCase
+				val plugins = _plugins.keySet.filter(_.toLowerCase.contains(filter)).map(_plugins(_))
+				if(plugins.isEmpty) {
+					e.reply(s"No plugins matched: $filter}")
+				} else {
+					e.reply(s"Enabling plugins: ${plugins.map(convertToName).mkString(", ")}")
+					plugins.foreach(e.pluginManager.enablePlugin(_))
 				}
 			}
 		}
@@ -97,14 +98,18 @@ class PluginManagementPlugin(protected var _plugins: Map[String, Plugin]) extend
 			if(e.args.length < 1) {
 				e.reply(s"Usage: ${e.cmd} <plugin>")
 			} else {
-				val filter = e.args(0)
+				val filter = e.args(0).toLowerCase
 				val plugins = e.pluginManager.plugins.map((pl) => {
 					(pl, convertToName(pl))
 				}).filter({
-					_._2.toLowerCase.contains(filter.toLowerCase())
+					_._2.toLowerCase.contains(filter)
 				})
-				e.genericReply(s"Disabling plugins: ${plugins.map(_._2).mkString(", ")}")
-				plugins.foreach((t) => e.pluginManager.disablePlugin((t._1)))
+				if(plugins.isEmpty) {
+					e.reply(s"No plugins matched: $filter}")
+				} else {
+					e.genericReply(s"Disabling plugins: ${plugins.map(_._2).mkString(", ")}")
+					plugins.foreach((t) => e.pluginManager.disablePlugin((t._1)))
+				}
 			}
 		}
 	}
