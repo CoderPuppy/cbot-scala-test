@@ -1,0 +1,24 @@
+ext {
+	info = [
+		dependencies: [
+			compile: [
+				'cpup.cbot:cbot:dev'
+			]
+		]
+	]
+}
+
+apply plugin: 'java'
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+info.dependencies.each { type, deps ->
+	deps.each { dependencies."$type"(it) }
+}
+
+apply plugin: 'scala'
+
+apply plugin: 'idea'
