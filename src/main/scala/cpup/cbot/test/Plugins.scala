@@ -284,7 +284,7 @@ class SayHelloPlugin extends Plugin {
 class EchoPlugin extends Plugin {
 	@Subscribe
 	def onMessage(e: ChannelMessageEvent) {
-		if(e.user != e.bot.user) {
+		if(e.user != e.bot.ircUser) {
 			e.channel.send.msg(e.msg)
 		}
 	}
