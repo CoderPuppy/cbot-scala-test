@@ -74,8 +74,8 @@ class UsersPlugin extends Plugin {
 			name = "perms",
 			usages = List(
 				"list [user]",
-				"grant [user] <permission>"
-				// TODO: take permissions
+				"grant [context] [user] <permissions>",
+				"take [context] [user] <permissions>"
 			),
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
 				if(e.args.length < 1) {
@@ -83,37 +83,81 @@ class UsersPlugin extends Plugin {
 				} else {
 					e.args(0) match {
 						case "list" =>
+							var context = e.context
 							var user = e.user.user
 
-							if(e.args.length >= 2) {
-								user = e.bot.users.fromNick(e.args(1)).user
+							for(arg <- e.args.view(1, e.args.length)) {
+								if(arg == "@") {
+									context = e.bot
+								} else if(arg.startsWith("#")) {
+									context = e.bot.channels(arg)
+								} else {
+									user = e.bot.users.fromNick(arg).user
+								}
 							}
 
-							e.reply(s"${user.username}'s permissions: ${e.context.getPermissions(user).mkString(", ")}")
+							e.reply(s"${user.username}'s permissions in $context: ${context.getPermissions(user).mkString(", ")}")
 
 						case "grant" =>
+							var context = e.context
 							var user = e.user.user
-							var permissions = e.args(1)
+							val permissions = e.args(e.args.length - 1)
 
-							if(e.args.length >= 3) {
-								user = e.bot.users.fromNick(e.args(1)).user
-								permissions = e.args(2)
+							for(arg <- e.args.view(1, e.args.length - 1)) {
+								if(arg == "@") {
+									context = e.bot
+								} else if(arg.startsWith("#")) {
+									context = e.bot.channels(arg)
+								} else {
+									user = e.bot.users.fromNick(arg).user
+								}
 							}
 
-							val allPermissions = e.context.checkPermission(e.user.user, 'allPermissions)
-							val sharePermissions = e.context.checkPermission(e.user.user, 'sharePermissions)
+							val allPermissions = context.checkPermission(e.user.user, 'allPermissions)
+							val sharePermissions = context.checkPermission(e.user.user, 'sharePermissions)
 
 							for(permStr <- permissions.split(',')) {
 								val perm = Symbol(permStr)
 
-								if(!(allPermissions || (e.context.checkPermission(e.user.user, perm) && sharePermissions))) {
+								if(!(allPermissions || (context.checkPermission(e.user.user, perm) && sharePermissions))) {
 									e.reply("Insufficient Permissions")
 
 									return ()
 								}
 
-								e.context.grantPermission(user, perm)
-								e.reply(s"Granted $perm to ${user.username}")
+								context.grantPermission(user, perm)
+								e.reply(s"Granted $perm to ${user.username} in $context")
+							}
+
+						case "take" =>
+							var context = e.context
+							var user = e.user.user
+							val permissions = e.args(e.args.length - 1)
+
+							for(arg <- e.args.view(1, e.args.length - 1)) {
+								if(arg == "@") {
+									context = e.bot
+								} else if(arg.startsWith("#")) {
+									context = e.bot.channels(arg)
+								} else {
+									user = e.bot.users.fromNick(arg).user
+								}
+							}
+
+							val allPermissions = context.checkPermission(e.user.user, 'allPermissions)
+							val takeSamePerms = context.checkPermission(e.user.user, 'takePermissions)
+
+							for(permStr <- permissions.split(',')) {
+								val perm = Symbol(permStr)
+
+								if(!(allPermissions || (context.checkPermission(e.user.user, perm) && takeSamePerms))) {
+									e.reply("Insufficient Permissions")
+
+									return ()
+								}
+
+								context.takePermission(user, perm)
+								e.reply(s"Took $perm from ${user.username} in $context")
 							}
 
 						case _ =>
@@ -135,19 +179,17 @@ class OPPlugin extends Plugin {
 			usage = "[channel] [user]",
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
 				var user = e.user.nick
-				var channel: String = null
-				var requiresChannel = false
+				var channel: Channel = null
 
 				e match {
 					case event: ChannelEvent =>
-						channel = event.channel.name
-						requiresChannel = true
+						channel = event.channel
 					case _ =>
 				}
 
 				if(channel == null || e.args.length >= 2 || (e.args.length >= 1 && e.args(0).startsWith("#"))){
 					if(e.args.length >= 1) {
-						channel = Channel.unifyName(e.args(0))
+						channel = e.bot.channels(e.args(0))
 					} else {
 						printUsage()
 					}
@@ -161,15 +203,15 @@ class OPPlugin extends Plugin {
 					}
 				}
 
-				if(!(e.context.checkPermission(e.user.user, 'opOthers) ||
-					(e.user.nick == user && e.context.checkPermission(e.user.user, 'opSelf)))) {
+				if(!(channel.checkPermission(e.user.user, 'opOthers) ||
+					(e.user.nick == user && channel.checkPermission(e.user.user, 'opSelf)))) {
 
 					e.reply("Insufficient Permissions")
 					return ()
 				}
 
-				e.bot.users.fromNick("ChanServ").send.msg(s"op #$channel $user")
-				e.genericReply(s"Opping $user in #$channel")
+				e.bot.users.fromNick("ChanServ").send.msg(s"op #${channel.name} $user")
+				e.genericReply(s"Opping $user in $channel")
 				()
 			}
 		)
@@ -182,19 +224,18 @@ class OPPlugin extends Plugin {
 			usage = "[channel] [user]",
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
 				var user = e.user.nick
-				var channel: String = null
+				var channel: Channel = null
 				var requiresChannel = false
 
 				e match {
 					case event: ChannelEvent =>
-						channel = event.channel.name
-						requiresChannel = true
+						channel = event.channel
 					case _ =>
 				}
 
 				if(channel == null || e.args.length >= 2 || (e.args.length >= 1 && e.args(0).startsWith("#"))){
 					if(e.args.length >= 1) {
-						channel = Channel.unifyName(e.args(0))
+						channel = e.bot.channels(e.args(0))
 					} else {
 						printUsage()
 					}
@@ -208,15 +249,15 @@ class OPPlugin extends Plugin {
 					}
 				}
 
-				if(!(e.context.checkPermission(e.user.user, 'deopOthers) ||
-					(e.user.nick == user && e.context.checkPermission(e.user.user, 'deopSelf)))) {
+				if(!(channel.checkPermission(e.user.user, 'deopOthers) ||
+					(e.user.nick == user && channel.checkPermission(e.user.user, 'deopSelf)))) {
 
 					e.reply("Insufficient Permissions")
 					return ()
 				}
 
-				e.bot.users.fromNick("ChanServ").send.msg(s"deop #$channel $user")
-				e.genericReply(s"Deopping $user in #$channel")
+				e.bot.users.fromNick("ChanServ").send.msg(s"deop #${channel.name} $user")
+				e.genericReply(s"Deopping $user in $channel")
 				()
 			}
 		)
