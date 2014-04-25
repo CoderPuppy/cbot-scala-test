@@ -43,6 +43,8 @@ object StartLocal {
 				.grantPermission('opSelf)
 				.grantPermission('deopSelf)
 				.grantPermission('allPermissions)
+				.grantPermission('channels)
+				.grantPermission('plugins)
 
 		bot.users.nickServUsers("cpup") = bot.users.fromUsername("CoderPuppy")
 
