@@ -66,6 +66,11 @@ class UsersPlugin extends Plugin {
 							if(e.args.length < 3) {
 								printUsage()
 							} else {
+								if(!e.bot.checkPermission(e.user.user, 'register)) {
+									e.reply("Insufficient Permission")
+									return ()
+								}
+
 								try {
 									val user = e.bot.users.fromNick(e.args(1))
 									if(user.user.isInstanceOf[GuestUser]) {
@@ -96,6 +101,8 @@ class UsersPlugin extends Plugin {
 						case _ =>
 							printUsage()
 					}
+
+					()
 				}
 			}
 		)
