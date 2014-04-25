@@ -3,9 +3,10 @@ package cpup.cbot.test
 import cpup.cbot.plugin.Plugin
 import com.google.common.eventbus.Subscribe
 import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, TCommandCheckEvent}
-import cpup.cbot.users.{AlreadyRegisteredException, GuestUserException, IncorrectPasswordException, UnknownUserException}
+import cpup.cbot.users._
 import cpup.cbot.events.channel.{ChannelMessageEvent, ChannelEvent}
 import cpup.cbot.channels.Channel
+import cpup.cbot.events.channel.ChannelMessageEvent
 
 class UsersPlugin extends Plugin {
 	@Subscribe
@@ -15,6 +16,9 @@ class UsersPlugin extends Plugin {
 			usages = List(
 				"whois [user]",
 				"login <username> <password>",
+				"logout",
+				"setpass[word] <new password>",
+				"register <nick> <username>",
 				"register-nickserv"
 			),
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
@@ -38,6 +42,16 @@ class UsersPlugin extends Plugin {
 								}
 							}
 
+						case "logout" =>
+							e.user.logout
+
+						case "setpass" | "setpassword" =>
+							if(e.args.length < 2) {
+								printUsage()
+							} else {
+								e.user.user.password = User.hash(e.args(1))
+							}
+
 						case "whois" =>
 							var user = e.user
 
@@ -47,6 +61,25 @@ class UsersPlugin extends Plugin {
 
 							e.genericReply(s"--[===[${user.nick}]===]--")
 							e.genericReply(s"Logged in as ${user.user.username}")
+
+						case "register" =>
+							if(e.args.length < 3) {
+								printUsage()
+							} else {
+								try {
+									val user = e.bot.users.fromNick(e.args(1))
+									if(user.user.isInstanceOf[GuestUser]) {
+										user.user = e.bot.users.register(e.args(2))
+										e.genericReply(s"Created account: ${e.args(2)}")
+										e.genericReply(s"${user.nick} logged into ${e.args(2)}")
+									} else {
+										e.reply(s"${user.nick} has already registered")
+									}
+								} catch {
+									case ex: AlreadyRegisteredException =>
+										e.reply("Username is already in use")
+								}
+							}
 
 						case "register-nickserv" =>
 							try {
@@ -87,10 +120,9 @@ class UsersPlugin extends Plugin {
 							var user = e.user.user
 
 							for(arg <- e.args.view(1, e.args.length)) {
-								if(arg == "@") {
-									context = e.bot
-								} else if(arg.startsWith("#")) {
-									context = e.bot.channels(arg)
+								val argContext = e.bot.getContext(arg)
+								if(argContext != null) {
+									context = argContext
 								} else {
 									user = e.bot.users.fromNick(arg).user
 								}
@@ -104,10 +136,9 @@ class UsersPlugin extends Plugin {
 							val permissions = e.args(e.args.length - 1)
 
 							for(arg <- e.args.view(1, e.args.length - 1)) {
-								if(arg == "@") {
-									context = e.bot
-								} else if(arg.startsWith("#")) {
-									context = e.bot.channels(arg)
+								val argContext = e.bot.getContext(arg)
+								if(argContext != null) {
+									context = argContext
 								} else {
 									user = e.bot.users.fromNick(arg).user
 								}
@@ -126,7 +157,7 @@ class UsersPlugin extends Plugin {
 								}
 
 								context.grantPermission(user, perm)
-								e.reply(s"Granted $perm to ${user.username} in $context")
+								e.genericReply(s"Granted $perm to ${user.username} in $context")
 							}
 
 						case "take" =>
@@ -135,10 +166,9 @@ class UsersPlugin extends Plugin {
 							val permissions = e.args(e.args.length - 1)
 
 							for(arg <- e.args.view(1, e.args.length - 1)) {
-								if(arg == "@") {
-									context = e.bot
-								} else if(arg.startsWith("#")) {
-									context = e.bot.channels(arg)
+								val argContext = e.bot.getContext(arg)
+								if(argContext != null) {
+									context = argContext
 								} else {
 									user = e.bot.users.fromNick(arg).user
 								}
@@ -157,7 +187,7 @@ class UsersPlugin extends Plugin {
 								}
 
 								context.takePermission(user, perm)
-								e.reply(s"Took $perm from ${user.username} in $context")
+								e.genericReply(s"Took $perm from ${user.username} in $context")
 							}
 
 						case _ =>
@@ -285,7 +315,7 @@ class EchoPlugin extends Plugin {
 	@Subscribe
 	def onMessage(e: ChannelMessageEvent) {
 		if(e.user != e.bot.ircUser) {
-			e.channel.send.msg(e.msg)
+			e.channel.send.msg(s"<${e.user.nick}> ${e.msg}")
 		}
 	}
 }
