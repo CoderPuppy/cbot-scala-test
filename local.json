@@ -1,15 +1,13 @@
 {
   "channels" : {
     "code/cbot" : {
-      "name" : "code/cbot",
       "key" : null,
       "rejoin" : true,
-      "plugins" : [ "@op" ]
+      "plugins" : [ "op:2BFAF9" ]
     }
   },
   "users" : {
     "CoderPuppy" : {
-      "username" : "CoderPuppy",
       "password" : "imnotacbotimacpup",
       "permissions" : [ "plugins", "channels", "allPermissions" ],
       "channelPermissions" : { },
@@ -19,43 +17,43 @@
   "nickServUsers" : {
     "cpup" : "CoderPuppy"
   },
-  "plugins" : [ "@channel-management", "cpup.cbot.plugin.CommandPlugin@153402694", "@users", "cpup.cbot.plugin.SavingPlugin@1281356714", "@help", "@perms" ],
+  "plugins" : [ "channel-management:E38F60", "command:07AE31", "users:12CCF8", "saving:201BAD", "help:CD76E0", "perms:A5AA52" ],
   "pluginInsts" : {
-    "@channel-management" : {
-      "name" : "@channel-management",
+    "channel-management:E38F60" : {
       "type" : "channel-management",
+      "id" : "E38F60",
       "data" : null
     },
-    "cpup.cbot.plugin.CommandPlugin@153402694" : {
-      "name" : "cpup.cbot.plugin.CommandPlugin@153402694",
+    "command:07AE31" : {
       "type" : "command",
+      "id" : "07AE31",
       "data" : {
         "prefix" : "!"
       }
     },
-    "@users" : {
-      "name" : "@users",
+    "users:12CCF8" : {
       "type" : "users",
+      "id" : "12CCF8",
       "data" : null
     },
-    "cpup.cbot.plugin.SavingPlugin@1281356714" : {
-      "name" : "cpup.cbot.plugin.SavingPlugin@1281356714",
+    "saving:201BAD" : {
       "type" : "saving",
+      "id" : "201BAD",
       "data" : null
     },
-    "@help" : {
-      "name" : "@help",
+    "help:CD76E0" : {
       "type" : "help",
+      "id" : "CD76E0",
       "data" : null
     },
-    "@perms" : {
-      "name" : "@perms",
+    "perms:A5AA52" : {
       "type" : "perms",
+      "id" : "A5AA52",
       "data" : null
     },
-    "@op" : {
-      "name" : "@op",
+    "op:2BFAF9" : {
       "type" : "op",
+      "id" : "2BFAF9",
       "data" : null
     }
   }

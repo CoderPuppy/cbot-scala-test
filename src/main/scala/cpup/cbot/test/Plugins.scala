@@ -1,6 +1,6 @@
 package cpup.cbot.test
 
-import cpup.cbot.plugin.{SingletonPlugin, Plugin}
+import cpup.cbot.plugin.SingletonPlugin
 import com.google.common.eventbus.Subscribe
 import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, TCommandCheckEvent}
 import cpup.cbot.events.channel._

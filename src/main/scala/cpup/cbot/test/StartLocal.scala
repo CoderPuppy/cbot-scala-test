@@ -1,13 +1,10 @@
 package cpup.cbot.test
 
-import cpup.cbot.{CBot, BotConfig}
-import cpup.cbot.plugin._
-import com.google.common.eventbus.Subscribe
-import cpup.cbot.events.channel.ChannelEvent
-import cpup.cbot.plugin.CommandPlugin.{TCommandCheckEvent, TCommandEvent}
+import cpup.cbot.BotConfig
+import cpup.cbot.plugin.CommandPlugin.TCommandCheckEvent
 import cpup.cbot.channels.Channel
 import cpup.cbot.events.channel.ChannelMessageEvent
-import cpup.cbot.users.{AlreadyRegisteredException, GuestUserException, IncorrectPasswordException, UnknownUserException}
+import cpup.cbot.users.GuestUserException
 import java.io.File
 
 object StartLocal extends BasicStart {
@@ -20,7 +17,7 @@ object StartLocal extends BasicStart {
 	def main(args: Array[String]) {
 		bot.channels.join("code/cbot")
 			.setRejoin(true)
-			.enablePlugin(pluginManagement.plugins("op"))
+			.enablePlugin(pluginTypes, "op")
 
 		bot.connect
 	}

@@ -22,12 +22,12 @@ trait BasicStart {
 	def saveFile: File
 	def config: BotConfig
 
-	val pluginManagement = new PluginManagementPlugin(Map())
+	val pluginManagement = new PluginManagementPlugin(pluginTypes)
 
 	val bot = new CBot(config)
 
 	if(saveFile.exists) {
-		SavingPlugin.load(bot, pluginManagement, pluginTypes, saveFile)
+		SavingPlugin.load(bot, pluginTypes, saveFile)
 	}
 
 	bot.enablePlugin(pluginManagement)
