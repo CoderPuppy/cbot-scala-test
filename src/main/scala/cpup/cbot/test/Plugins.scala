@@ -4,9 +4,11 @@ import cpup.cbot.plugin.Plugin
 import com.google.common.eventbus.Subscribe
 import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, TCommandCheckEvent}
 import cpup.cbot.users._
-import cpup.cbot.events.channel.{ChannelMessageEvent, ChannelEvent}
-import cpup.cbot.channels.Channel
-import cpup.cbot.events.channel.ChannelMessageEvent
+import cpup.cbot.events.channel.{LeaveEvent, JoinEvent, ChannelMessageEvent, ChannelEvent}
+import cpup.cbot.channels.{ChannelWrites, Channel}
+import java.io.File
+import play.api.libs.json.{Json, JsArray}
+import cpup.cbot.events.RegisterEvent
 
 class UsersPlugin extends Plugin {
 	@Subscribe
@@ -31,7 +33,7 @@ class UsersPlugin extends Plugin {
 								printUsage()
 							} else {
 								try {
-									e.user.login(e.args(1), e.args(2))
+									e.ircUser.login(e.args(1), e.args(2))
 									e.reply(s"Logged in as ${e.args(1)}")
 								} catch {
 									case ex: UnknownUserException =>
@@ -43,18 +45,18 @@ class UsersPlugin extends Plugin {
 							}
 
 						case "logout" =>
-							e.user.logout
+							e.ircUser.logout
 
 						case "setpass" | "setpassword" =>
 							if(e.args.length < 2) {
 								printUsage()
 							} else {
-								e.user.user.password = User.hash(e.args(1))
-								e.reply(s"Set password for ${e.user.user.username}")
+								e.ircUser.user.password = User.hash(e.args(1))
+								e.reply(s"Set password for ${e.ircUser.user.username}")
 							}
 
 						case "whois" =>
-							var user = e.user
+							var user = e.ircUser
 
 							if(e.args.length >= 2) {
 								user = e.bot.users.fromNick(e.args(1))
@@ -67,7 +69,7 @@ class UsersPlugin extends Plugin {
 							if(e.args.length < 3) {
 								printUsage()
 							} else {
-								if(!e.bot.checkPermission(e.user.user, 'register)) {
+								if(!e.bot.checkPermission(e.ircUser.user, 'register)) {
 									e.reply("Insufficient Permission")
 									return ()
 								}
@@ -89,8 +91,8 @@ class UsersPlugin extends Plugin {
 
 						case "register-nickserv" =>
 							try {
-								e.user.registerNickServ
-								e.reply(s"Registered NickServ account: ${e.user.nickserv} to user: ${e.user.user.username}")
+								e.ircUser.registerNickServ
+								e.reply(s"Registered NickServ account: ${e.ircUser.nickserv} to user: ${e.ircUser.user.username}")
 							} catch {
 								case ex: GuestUserException =>
 									e.reply("Cannot register NickServ account to the user because you aren't logged in")
@@ -125,7 +127,7 @@ class UsersPlugin extends Plugin {
 					e.args(0) match {
 						case "list" =>
 							var context = e.context
-							var user = e.user.user
+							var user = e.ircUser.user
 
 							for(arg <- e.args.view(1, e.args.length)) {
 								val argContext = e.bot.getContext(arg)
@@ -140,7 +142,7 @@ class UsersPlugin extends Plugin {
 
 						case "grant" =>
 							var context = e.context
-							var user = e.user.user
+							var user = e.ircUser.user
 							val permissions = e.args(e.args.length - 1)
 
 							for(arg <- e.args.view(1, e.args.length - 1)) {
@@ -152,13 +154,13 @@ class UsersPlugin extends Plugin {
 								}
 							}
 
-							val allPermissions = context.checkPermission(e.user.user, 'allPermissions)
-							val sharePermissions = context.checkPermission(e.user.user, 'sharePermissions)
+							val allPermissions = context.checkPermission(e.ircUser.user, 'allPermissions)
+							val sharePermissions = context.checkPermission(e.ircUser.user, 'sharePermissions)
 
 							for(permStr <- permissions.split(',')) {
 								val perm = Symbol(permStr)
 
-								if(!(allPermissions || (context.checkPermission(e.user.user, perm) && sharePermissions))) {
+								if(!(allPermissions || (context.checkPermission(e.ircUser.user, perm) && sharePermissions))) {
 									e.reply("Insufficient Permissions")
 
 									return ()
@@ -170,7 +172,7 @@ class UsersPlugin extends Plugin {
 
 						case "take" =>
 							var context = e.context
-							var user = e.user.user
+							var user = e.ircUser.user
 							val permissions = e.args(e.args.length - 1)
 
 							for(arg <- e.args.view(1, e.args.length - 1)) {
@@ -182,13 +184,13 @@ class UsersPlugin extends Plugin {
 								}
 							}
 
-							val allPermissions = context.checkPermission(e.user.user, 'allPermissions)
-							val takeSamePerms = context.checkPermission(e.user.user, 'takePermissions)
+							val allPermissions = context.checkPermission(e.ircUser.user, 'allPermissions)
+							val takeSamePerms = context.checkPermission(e.ircUser.user, 'takePermissions)
 
 							for(permStr <- permissions.split(',')) {
 								val perm = Symbol(permStr)
 
-								if(!(allPermissions || (context.checkPermission(e.user.user, perm) && takeSamePerms))) {
+								if(!(allPermissions || (context.checkPermission(e.ircUser.user, perm) && takeSamePerms))) {
 									e.reply("Insufficient Permissions")
 
 									return ()
@@ -216,7 +218,7 @@ class OPPlugin extends Plugin {
 			name = "op",
 			usage = "[channel] [user]",
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
-				var user = e.user.nick
+				var user = e.ircUser.nick
 				var channel: Channel = null
 
 				e match {
@@ -241,8 +243,8 @@ class OPPlugin extends Plugin {
 					}
 				}
 
-				if(!(channel.checkPermission(e.user.user, 'opOthers) ||
-					(e.user.nick == user && channel.checkPermission(e.user.user, 'opSelf)))) {
+				if(!(channel.checkPermission(e.ircUser.user, 'opOthers) ||
+					(e.ircUser.nick == user && channel.checkPermission(e.ircUser.user, 'opSelf)))) {
 
 					e.reply("Insufficient Permissions")
 					return ()
@@ -261,7 +263,7 @@ class OPPlugin extends Plugin {
 			name = "deop",
 			usage = "[channel] [user]",
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
-				var user = e.user.nick
+				var user = e.ircUser.nick
 				var channel: Channel = null
 				var requiresChannel = false
 
@@ -287,8 +289,8 @@ class OPPlugin extends Plugin {
 					}
 				}
 
-				if(!(channel.checkPermission(e.user.user, 'deopOthers) ||
-					(e.user.nick == user && channel.checkPermission(e.user.user, 'deopSelf)))) {
+				if(!(channel.checkPermission(e.ircUser.user, 'deopOthers) ||
+					(e.ircUser.nick == user && channel.checkPermission(e.ircUser.user, 'deopSelf)))) {
 
 					e.reply("Insufficient Permissions")
 					return ()
@@ -310,7 +312,7 @@ class SayHelloPlugin extends Plugin {
 			usage = "[name]",
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
 				if(e.args.length < 1) {
-					e.genericReply(s"HI ${e.user.nick}!")
+					e.genericReply(s"HI ${e.ircUser.nick}!")
 				} else {
 					e.genericReply(s"HI ${e.args(0)}!")
 				}
@@ -322,8 +324,8 @@ class SayHelloPlugin extends Plugin {
 class EchoPlugin extends Plugin {
 	@Subscribe
 	def onMessage(e: ChannelMessageEvent) {
-		if(e.user != e.bot.ircUser) {
-			e.channel.send.msg(s"<${e.user.nick}> ${e.msg}")
+		if(e.ircUser != e.bot.ircUser) {
+			e.channel.send.msg(s"<${e.ircUser.nick}> ${e.msg}")
 		}
 	}
 }
@@ -345,4 +347,32 @@ class SayPlugin extends Plugin {
 			}
 		)
 	}
+}
+
+class SavingPlugin(val file: File) extends Plugin {
+	var channels = Json.obj()
+	var users = Json.obj()
+
+	implicit val channelWrites = ChannelWrites
+	implicit val userWrites = UserWrites
+
+	@Subscribe
+	def join(e: JoinEvent) {
+		channels += (e.channel.name -> Json.toJson(e.channel))
+	}
+
+	@Subscribe
+	def leave(e: LeaveEvent) {
+		channels - e.channel.name
+	}
+
+	@Subscribe
+	def register(e: RegisterEvent) {
+		users += (e.user.username -> Json.toJson(e.user))
+	}
+
+//	@Subscribe
+//	def unregister(e: UnregisterEvent) {
+//		users -= e.user.username
+//	}
 }
