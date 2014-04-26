@@ -50,6 +50,7 @@ class UsersPlugin extends Plugin {
 								printUsage()
 							} else {
 								e.user.user.password = User.hash(e.args(1))
+								e.reply(s"Set password for ${e.user.user.username}")
 							}
 
 						case "whois" =>
