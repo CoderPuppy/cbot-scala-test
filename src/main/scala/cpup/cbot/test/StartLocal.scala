@@ -8,6 +8,7 @@ import cpup.cbot.plugin.CommandPlugin.{TCommandCheckEvent, TCommandEvent}
 import cpup.cbot.channels.Channel
 import cpup.cbot.events.channel.ChannelMessageEvent
 import cpup.cbot.users.{AlreadyRegisteredException, GuestUserException, IncorrectPasswordException, UnknownUserException}
+import java.io.File
 
 object StartLocal {
 	def main(args: Array[String]) {
@@ -16,6 +17,12 @@ object StartLocal {
 			.setNickServPass("imacbot")
 
 		val bot = new CBot(config)
+
+		val saveFile = new File("local.json")
+
+		if(saveFile.exists) {
+			SavingPlugin.load(bot, saveFile)
+		}
 
 		val pluginManagement = new PluginManagementPlugin(Map(
 			"echo" -> new EchoPlugin,
@@ -30,23 +37,14 @@ object StartLocal {
 		bot
 			.enablePlugin(new CommandPlugin("!"))
 			.enablePlugin(pluginManagement)
+			.enablePlugin(new SavingPlugin(saveFile))
+			.enablePlugin(pluginManagement.plugins("help"))
+			.enablePlugin(pluginManagement.plugins("users"))
+			.enablePlugin(pluginManagement.plugins("channel-management"))
 
 		bot.channels.join("code/cbot")
 			.setRejoin(true)
 			.enablePlugin(pluginManagement.plugins("op"))
-			.enablePlugin(pluginManagement.plugins("help"))
-			.enablePlugin(pluginManagement.plugins("channel-management"))
-			.enablePlugin(pluginManagement.plugins("users"))
-
-		bot.users
-			.register("CoderPuppy", "test")
-				.grantPermission('opSelf)
-				.grantPermission('deopSelf)
-				.grantPermission('allPermissions)
-				.grantPermission('channels)
-				.grantPermission('plugins)
-
-		bot.users.nickServUsers("cpup") = bot.users.fromUsername("CoderPuppy")
 
 		bot.connect
 	}

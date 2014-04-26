@@ -1,0 +1,20 @@
+{
+  "channels" : {
+    "code/cbot" : {
+      "name" : "code/cbot",
+      "key" : null,
+      "rejoin" : true
+    }
+  },
+  "users" : {
+    "CoderPuppy" : {
+      "username" : "CoderPuppy",
+      "password" : "imnotacbotimacpup",
+      "permissions" : [ "plugins", "channels", "allPermissions" ],
+      "channelPermissions" : { }
+    }
+  },
+  "nickServUsers" : {
+    "cpup" : "CoderPuppy"
+  }
+}
