@@ -53,6 +53,7 @@ class UsersPlugin extends Plugin {
 
 						case "logout" =>
 							e.ircUser.logout
+							e.reply("Logged out")
 
 						case "setpass" | "setpassword" =>
 							if(e.args.length < 2) {
@@ -77,7 +78,7 @@ class UsersPlugin extends Plugin {
 								printUsage()
 							} else {
 								if(!e.bot.checkPermission(e.ircUser.user, 'register)) {
-									e.reply("Insufficient Permission")
+									e.reply("Insufficient Permissions")
 									return ()
 								}
 
