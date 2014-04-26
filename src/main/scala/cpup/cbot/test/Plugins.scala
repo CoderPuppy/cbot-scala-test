@@ -1,13 +1,15 @@
 package cpup.cbot.test
 
-import cpup.cbot.plugin.Plugin
+import cpup.cbot.plugin.{SingletonPlugin, Plugin}
 import com.google.common.eventbus.Subscribe
 import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, TCommandCheckEvent}
 import cpup.cbot.events.channel._
 import cpup.cbot.channels.Channel
 import cpup.cbot.events.channel.ChannelMessageEvent
 
-class OPPlugin extends Plugin {
+object OPPlugin extends SingletonPlugin {
+	def name = "op" // TODO: IRCUsersPlugin?
+
 	@Subscribe
 	def op(e: TCommandCheckEvent) {
 		e.command(
@@ -100,7 +102,9 @@ class OPPlugin extends Plugin {
 	}
 }
 
-class SayHelloPlugin extends Plugin {
+object SayHelloPlugin extends SingletonPlugin {
+	def name = "say-hello"
+
 	@Subscribe
 	def sayHi(e: TCommandCheckEvent) {
 		e.command(
@@ -117,7 +121,9 @@ class SayHelloPlugin extends Plugin {
 	}
 }
 
-class EchoPlugin extends Plugin {
+object EchoPlugin extends SingletonPlugin {
+	def name = "echo"
+
 	@Subscribe
 	def onMessage(e: ChannelMessageEvent) {
 		if(e.ircUser != e.bot.ircUser) {
@@ -126,7 +132,9 @@ class EchoPlugin extends Plugin {
 	}
 }
 
-class SayPlugin extends Plugin {
+object SayPlugin extends SingletonPlugin {
+	def name = "say"
+
 	@Subscribe
 	def say(e: TCommandCheckEvent) {
 		e.command(

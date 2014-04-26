@@ -3,7 +3,8 @@
     "code/cbot" : {
       "name" : "code/cbot",
       "key" : null,
-      "rejoin" : true
+      "rejoin" : true,
+      "plugins" : [ "@op" ]
     }
   },
   "users" : {
@@ -11,10 +12,51 @@
       "username" : "CoderPuppy",
       "password" : "imnotacbotimacpup",
       "permissions" : [ "plugins", "channels", "allPermissions" ],
-      "channelPermissions" : { }
+      "channelPermissions" : { },
+      "plugins" : [ ]
     }
   },
   "nickServUsers" : {
     "cpup" : "CoderPuppy"
+  },
+  "plugins" : [ "@channel-management", "cpup.cbot.plugin.CommandPlugin@153402694", "@users", "cpup.cbot.plugin.SavingPlugin@657475471", "@help", "@perms" ],
+  "pluginInsts" : {
+    "@channel-management" : {
+      "name" : "@channel-management",
+      "type" : "channel-management",
+      "data" : null
+    },
+    "cpup.cbot.plugin.CommandPlugin@153402694" : {
+      "name" : "cpup.cbot.plugin.CommandPlugin@153402694",
+      "type" : "command",
+      "data" : {
+        "prefix" : "!"
+      }
+    },
+    "@users" : {
+      "name" : "@users",
+      "type" : "users",
+      "data" : null
+    },
+    "@help" : {
+      "name" : "@help",
+      "type" : "help",
+      "data" : null
+    },
+    "@perms" : {
+      "name" : "@perms",
+      "type" : "perms",
+      "data" : null
+    },
+    "cpup.cbot.plugin.SavingPlugin@657475471" : {
+      "name" : "cpup.cbot.plugin.SavingPlugin@657475471",
+      "type" : "saving",
+      "data" : null
+    },
+    "@op" : {
+      "name" : "@op",
+      "type" : "op",
+      "data" : null
+    }
   }
 }
