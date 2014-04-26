@@ -19,7 +19,7 @@
   "nickServUsers" : {
     "cpup" : "CoderPuppy"
   },
-  "plugins" : [ "@channel-management", "cpup.cbot.plugin.CommandPlugin@153402694", "@users", "cpup.cbot.plugin.SavingPlugin@657475471", "@help", "@perms" ],
+  "plugins" : [ "@channel-management", "cpup.cbot.plugin.CommandPlugin@153402694", "@users", "cpup.cbot.plugin.SavingPlugin@1281356714", "@help", "@perms" ],
   "pluginInsts" : {
     "@channel-management" : {
       "name" : "@channel-management",
@@ -38,6 +38,11 @@
       "type" : "users",
       "data" : null
     },
+    "cpup.cbot.plugin.SavingPlugin@1281356714" : {
+      "name" : "cpup.cbot.plugin.SavingPlugin@1281356714",
+      "type" : "saving",
+      "data" : null
+    },
     "@help" : {
       "name" : "@help",
       "type" : "help",
@@ -46,11 +51,6 @@
     "@perms" : {
       "name" : "@perms",
       "type" : "perms",
-      "data" : null
-    },
-    "cpup.cbot.plugin.SavingPlugin@657475471" : {
-      "name" : "cpup.cbot.plugin.SavingPlugin@657475471",
-      "type" : "saving",
       "data" : null
     },
     "@op" : {
