@@ -9,7 +9,7 @@
   "users" : {
     "CoderPuppy" : {
       "password" : "imnotacbotimacpup",
-      "permissions" : [ "plugins", "channels", "allPermissions" ],
+      "permissions" : [ "plugins", "channels", "allPermissions", "opOthers", "deopOthers" ],
       "channelPermissions" : { },
       "plugins" : [ ]
     }
