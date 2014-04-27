@@ -4,3 +4,4 @@ cbot-test.ipr
 cbot-test.iws
 src/main/scala/cpup/cbot/test/StartEsper.scala
 esper.json
+build/

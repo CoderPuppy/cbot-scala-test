@@ -13,6 +13,9 @@ apply plugin: 'java'
 repositories {
 	mavenCentral()
 	mavenLocal()
+	maven {
+		url "http://repo.typesafe.com/typesafe/releases"
+	}
 }
 
 info.dependencies.each { type, deps ->
