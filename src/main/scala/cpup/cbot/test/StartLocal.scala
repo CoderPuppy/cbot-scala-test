@@ -15,10 +15,6 @@ object StartLocal extends BasicStart {
 	lazy val saveFile = new File("local.json")
 
 	def main(args: Array[String]) {
-		bot.channels.join("code/cbot")
-			.setRejoin(true)
-			.enablePlugin(pluginTypes, "op")
-
 		bot.connect
 	}
 }
