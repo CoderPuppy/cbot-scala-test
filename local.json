@@ -3,13 +3,13 @@
     "code/cbot" : {
       "key" : null,
       "rejoin" : true,
-      "plugins" : [ "op:2BFAF9" ]
+      "plugins" : [ "op@2BFAF9" ]
     }
   },
   "users" : {
     "CoderPuppy" : {
       "password" : "imnotacbotimacpup",
-      "permissions" : [ "plugins", "channels", "allPermissions", "opOthers", "deopOthers" ],
+      "permissions" : [ "plugins", "channels", "allPermissions", "deopOthers", "opOthers" ],
       "channelPermissions" : { },
       "plugins" : [ ]
     }
@@ -17,44 +17,49 @@
   "nickServUsers" : {
     "cpup" : "CoderPuppy"
   },
-  "plugins" : [ "channel-management:E38F60", "command:07AE31", "users:12CCF8", "saving:201BAD", "help:CD76E0", "perms:A5AA52" ],
+  "plugins" : [ "channel-management@E38F60", "command@07AE31", "users@12CCF8", "saving@201BAD", "help@CD76E0", "perms@A5AA52" ],
   "pluginInsts" : {
-    "channel-management:E38F60" : {
+    "channel-management@E38F60" : {
       "type" : "channel-management",
       "id" : "E38F60",
       "data" : null
     },
-    "command:07AE31" : {
+    "users@12CCF8" : {
+      "type" : "users",
+      "id" : "12CCF8",
+      "data" : null
+    },
+    "saving@201BAD" : {
+      "type" : "saving",
+      "id" : "201BAD",
+      "data" : null
+    },
+    "help@CD76E0" : {
+      "type" : "help",
+      "id" : "CD76E0",
+      "data" : null
+    },
+    "perms@A5AA52" : {
+      "type" : "perms",
+      "id" : "A5AA52",
+      "data" : null
+    },
+    "say-hello@304BF1" : {
+      "type" : "say-hello",
+      "id" : "304BF1",
+      "data" : null
+    },
+    "op@2BFAF9" : {
+      "type" : "op",
+      "id" : "2BFAF9",
+      "data" : null
+    },
+    "command@07AE31" : {
       "type" : "command",
       "id" : "07AE31",
       "data" : {
         "prefix" : "!"
       }
-    },
-    "users:12CCF8" : {
-      "type" : "users",
-      "id" : "12CCF8",
-      "data" : null
-    },
-    "saving:201BAD" : {
-      "type" : "saving",
-      "id" : "201BAD",
-      "data" : null
-    },
-    "help:CD76E0" : {
-      "type" : "help",
-      "id" : "CD76E0",
-      "data" : null
-    },
-    "perms:A5AA52" : {
-      "type" : "perms",
-      "id" : "A5AA52",
-      "data" : null
-    },
-    "op:2BFAF9" : {
-      "type" : "op",
-      "id" : "2BFAF9",
-      "data" : null
     }
   }
 }
