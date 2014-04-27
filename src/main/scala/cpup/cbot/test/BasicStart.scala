@@ -3,6 +3,7 @@ package cpup.cbot.test
 import cpup.cbot.plugin._
 import java.io.File
 import cpup.cbot.{CBot, BotConfig}
+import cpup.cbot.test.plugins._
 
 trait BasicStart {
 	val pluginTypes = PluginType.pluginTypes(
@@ -16,7 +17,8 @@ trait BasicStart {
 		PermsPlugin,
 		CommandPlugin,
 		SavingPlugin,
-		PluginManagementPlugin
+		PluginManagementPlugin,
+		DoPlugin
 	)
 
 	def saveFile: File

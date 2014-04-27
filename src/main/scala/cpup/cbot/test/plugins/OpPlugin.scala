@@ -1,11 +1,10 @@
-package cpup.cbot.test
+package cpup.cbot.test.plugins
 
 import cpup.cbot.plugin.SingletonPlugin
 import com.google.common.eventbus.Subscribe
 import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, TCommandCheckEvent}
-import cpup.cbot.events.channel._
 import cpup.cbot.channels.Channel
-import cpup.cbot.events.channel.ChannelMessageEvent
+import cpup.cbot.events.channel.ChannelEvent
 
 object OPPlugin extends SingletonPlugin {
 	def name = "op" // TODO: IRCUsersPlugin?
@@ -19,9 +18,10 @@ object OPPlugin extends SingletonPlugin {
 				var user = e.ircUser.nick
 				var channel: Channel = null
 
-				e match {
-					case event: ChannelEvent =>
-						channel = event.channel
+				e.context match {
+					case chan: Channel =>
+						channel = chan
+
 					case _ =>
 				}
 
@@ -63,11 +63,11 @@ object OPPlugin extends SingletonPlugin {
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
 				var user = e.ircUser.nick
 				var channel: Channel = null
-				var requiresChannel = false
 
-				e match {
-					case event: ChannelEvent =>
-						channel = event.channel
+				e.context match {
+					case chan: Channel =>
+						channel = chan
+
 					case _ =>
 				}
 
@@ -101,56 +101,3 @@ object OPPlugin extends SingletonPlugin {
 		)
 	}
 }
-
-object SayHelloPlugin extends SingletonPlugin {
-	def name = "say-hello"
-
-	@Subscribe
-	def sayHi(e: TCommandCheckEvent) {
-		e.command(
-			name = "say-hi",
-			usage = "[name]",
-			handle = (e: TCommandEvent, printUsage: () => Unit) => {
-				if(e.args.length < 1) {
-					e.genericReply(s"HI ${e.ircUser.nick}!")
-				} else {
-					e.genericReply(s"HI ${e.args(0)}!")
-				}
-			}
-		)
-	}
-}
-
-object EchoPlugin extends SingletonPlugin {
-	def name = "echo"
-
-	@Subscribe
-	def onMessage(e: ChannelMessageEvent) {
-		if(e.ircUser != e.bot.ircUser) {
-			e.channel.send.msg(s"<${e.ircUser.nick}> ${e.msg}")
-		}
-	}
-}
-
-object SayPlugin extends SingletonPlugin {
-	def name = "say"
-
-	@Subscribe
-	def say(e: TCommandCheckEvent) {
-		e.command(
-			name = "say",
-			usage = "<msg>...",
-			handle = (e: TCommandEvent, printUsage: () => Unit) => {
-				if(e.args.length < 1) {
-					printUsage()
-				} else {
-					e.genericReply(e.args.mkString(" "))
-				}
-
-				()
-			}
-		)
-	}
-}
-
-
