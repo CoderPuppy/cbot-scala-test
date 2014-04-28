@@ -17,16 +17,23 @@
   "nickServUsers" : {
     "cpup" : "CoderPuppy"
   },
-  "plugins" : [ "channel-management@E38F60", "command@07AE31", "users@12CCF8", "saving@201BAD", "help@CD76E0", "perms@A5AA52" ],
+  "plugins" : [ "command@07AE31", "saving@201BAD", "users@12CCF8", "channel-management@E38F60", "help@CD76E0", "perms@A5AA52" ],
   "pluginInsts" : {
-    "channel-management@E38F60" : {
-      "type" : "channel-management",
-      "id" : "E38F60",
-      "data" : null
+    "command@07AE31" : {
+      "type" : "command",
+      "id" : "07AE31",
+      "data" : {
+        "prefix" : "!"
+      }
     },
     "users@12CCF8" : {
       "type" : "users",
       "id" : "12CCF8",
+      "data" : null
+    },
+    "channel-management@E38F60" : {
+      "type" : "channel-management",
+      "id" : "E38F60",
       "data" : null
     },
     "saving@201BAD" : {
@@ -44,22 +51,10 @@
       "id" : "A5AA52",
       "data" : null
     },
-    "say-hello@304BF1" : {
-      "type" : "say-hello",
-      "id" : "304BF1",
-      "data" : null
-    },
     "op@2BFAF9" : {
       "type" : "op",
       "id" : "2BFAF9",
       "data" : null
-    },
-    "command@07AE31" : {
-      "type" : "command",
-      "id" : "07AE31",
-      "data" : {
-        "prefix" : "!"
-      }
     }
   }
 }

@@ -25,3 +25,13 @@ info.dependencies.each { type, deps ->
 apply plugin: 'scala'
 
 apply plugin: 'idea'
+
+task(runLocal, dependsOn: 'classes', type: JavaExec) {
+	main = "cpup.cbot.test.StartLocal"
+	classpath = sourceSets.main.runtimeClasspath
+}
+
+task(runEsper, dependsOn: 'classes', type: JavaExec) {
+	main = "cpup.cbot.test.StartEsper"
+	classpath = sourceSets.main.runtimeClasspath
+}
