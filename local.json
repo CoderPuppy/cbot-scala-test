@@ -26,6 +26,11 @@
         "prefix" : "!"
       }
     },
+    "saving@201BAD" : {
+      "type" : "saving",
+      "id" : "201BAD",
+      "data" : null
+    },
     "users@12CCF8" : {
       "type" : "users",
       "id" : "12CCF8",
@@ -34,11 +39,6 @@
     "channel-management@E38F60" : {
       "type" : "channel-management",
       "id" : "E38F60",
-      "data" : null
-    },
-    "saving@201BAD" : {
-      "type" : "saving",
-      "id" : "201BAD",
       "data" : null
     },
     "help@CD76E0" : {

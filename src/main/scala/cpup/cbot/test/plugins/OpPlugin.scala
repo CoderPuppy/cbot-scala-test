@@ -2,20 +2,18 @@ package cpup.cbot.test.plugins
 
 import cpup.cbot.plugin.SingletonPlugin
 import com.google.common.eventbus.Subscribe
-import cpup.cbot.plugin.CommandPlugin.{TCommandEvent, TCommandCheckEvent}
-import cpup.cbot.channels.Channel
-import cpup.cbot.events.channel.ChannelEvent
+import cpup.cbot.plugin.commandPlugin.CommandPlugin.{TCommandEvent, TCommandCheckEvent}
 
 object OPPlugin extends SingletonPlugin {
 	def name = "op" // TODO: IRCUsersPlugin?
 
 	@Subscribe
 	def op(e: TCommandCheckEvent) {
-		e.command(
+		/*e.command(
 			name = "op",
 			usage = "[channel] [user]",
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
-				var user = e.ircUser.nick
+				/*var user = e.ircUser.nick
 				var channel: Channel = null
 
 				e.context match {
@@ -50,18 +48,18 @@ object OPPlugin extends SingletonPlugin {
 
 				e.bot.users.fromNick("ChanServ").send.msg(s"op #${channel.name} $user")
 				e.genericReply(s"Opping $user in $channel")
-				()
+				()*/
 			}
-		)
+		)*/
 	}
 
 	@Subscribe
 	def deop(e: TCommandCheckEvent) {
-		e.command(
+		/*e.command(
 			name = "deop",
 			usage = "[channel] [user]",
 			handle = (e: TCommandEvent, printUsage: () => Unit) => {
-				var user = e.ircUser.nick
+				/*var user = e.ircUser.nick
 				var channel: Channel = null
 
 				e.context match {
@@ -96,8 +94,8 @@ object OPPlugin extends SingletonPlugin {
 
 				e.bot.users.fromNick("ChanServ").send.msg(s"deop #${channel.name} $user")
 				e.genericReply(s"Deopping $user in $channel")
-				()
+				()*/
 			}
-		)
+		)*/
 	}
 }
